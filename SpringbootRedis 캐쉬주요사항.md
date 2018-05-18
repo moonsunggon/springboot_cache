@@ -2,15 +2,17 @@
 
 1.grdle 필요라이브러리 추가
 1) spring-data-redis : 레디스 데이터 서버 설정에 필요한 라이브러리
-2) spring-boot-starter-cache: 스프링부트용 레디스 캐쉬 사용에 필요한 라이브러리
+2) spring-boot-starter-cache: 스프링부트용 레디스 캐쉬 사용에 필요한 라이브러리(스프링부트 버전업에 따라 Deprecated 됨)
 3) jedis: redis clients
-//redis
+
+//redis 예시
 compile 'org.springframework.data:spring-data-redis'
 compile 'redis.clients:jedis'
 compile group: 'org.springframework.boot', name: 'spring-boot-starter-cache', version: '2.0.1.RELEASE'
 
 2. Application.java 파일에 @EnableCaching 적용.
 - 관련 Annotation은 포스트 프로세서가 구분 된 메소드를 찾기 위해 모든 빈을 검사하고 모든 호출을 가로 채기 위해 프록시를 생성
+
 EX)
 @SpringBootApplication
 @EnableCaching
@@ -22,6 +24,7 @@ public class Application extends SpringBootServletInitializer {
 
 3. 주의사항 class에 데이터를 담는 자바빈의 경우 모든 객체에 Serializable implements 되어있어야 함.
   - 되어있지 않은 경우 오류 발생.
+  - 하기 예시는 lombok 과 같이 사용하는 경우의 예시임
 @Data
 public class AuthToken implements Serializable{
     private static final long serialVersionUID = 4404236100290581280L;
@@ -66,17 +69,15 @@ public Book findBook(String name)
 
 Ex6)Cache SpEL에서 사용 가능한 메타데이터
 
-이름	               위치	                        설명	                            예시
-methodName	root object	호출되는 메서드의 이름	#root.methodName
-method	root object	호출되는 메서드	            #root.method.name
-target	            root object	호출되는 대상 객체	            #root.target
-targetClass	root object	호출되는 대상 클래스	            #root.targetClass
-args	            root object	대상을 호출하는데 사용한        #root.args[0]
-                                                   인자(배열)	
-caches  	root object	현재 실행된 메서드                  	#root.caches[0].name
-                                                  캐시의 컬렉션	
-argument          evaluation        메서드 인자의 이름.                   iban나 a0 (p0를  사용하거나
-name	             context              이유로든 이름을                         별칭으로 p<#arg> 형식을 사용할 수 있다.).
+이름	       위치	                        설명	                            예시
+methodName	root object	                   호출되는 메서드의 이름	                #root.methodName
+method	        root object	                   호출되는 메서드	                  #root.method.name
+target	        root object	                   호출되는 대상 객체	                 #root.target
+targetClass	root object	                   호출되는 대상 클래스	                #root.targetClass
+args	        root object	                   대상을 호출하는데 사용한 인자(배열)	   #root.args[0]                                    
+caches  	root object	                   현재 실행된 메서드  캐시의 컬렉션      #root.caches[0].nam                             
+argument        evaluation                        메서드 인자의 이름.                   iban나 a0 (p0를  사용하거나
+name	        context              이유로든 이름을                         별칭으로 p<#arg> 형식을 사용할 수 있다.).
                                                    사용할 수 없다면
                                                    (예: 디버깅 정보가 없는 경우)
                                                    a<#arg>에서 인자 이름을 사용할 수도 
@@ -87,6 +88,7 @@ name	             context              이유로든 이름을                   
 
 메서드 실행에 영향을 주지 않고 캐시를 갱신할 수 있다. 즉 메서드를 항상 실행하고 그결과를 옵션에 따라 캐시에 보관한다.
 메서드 흐름 최적화보다는 꼭 캐시 생성을 해야 하는 경우에 사용한다.
+
 EX1) 사용자를 업데이트 한 경우 캐시에 결과를 저장하여 나중에 조회 할 수 있다.
 EX2)아래 메소드는 항상 실행되고 결과는 캐시에 저장된다.
 @CachePut(value = 'user', key = "#id")
